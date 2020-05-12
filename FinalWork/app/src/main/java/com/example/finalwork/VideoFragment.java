@@ -8,11 +8,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.MediaController;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 
@@ -25,6 +27,7 @@ public class VideoFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String NICKNAME = "nickName";
     private static final String VIDEOURL = "videoUrl";
+    private static final String TAG = "husserl";
 
     private String nickName;
     private String videoUrl;
@@ -66,6 +69,7 @@ public class VideoFragment extends Fragment {
         VideoView mVideoView = view.findViewById(R.id.vv_video);
         Uri uri = Uri.parse(videoUrl);
         mVideoView.setVideoURI(uri);
+        Log.d(TAG, "uri已设置");
         //播放控制器
         mVideoView.setMediaController(new MediaController(getContext()));
         mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -73,6 +77,21 @@ public class VideoFragment extends Fragment {
             public void onCompletion(MediaPlayer mp) {
                 mp.start();
                 mp.setLooping(true);
+            }
+        });
+        mVideoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            @Override
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+                if(what==MediaPlayer.MEDIA_ERROR_UNKNOWN){
+                    if(extra==MediaPlayer.MEDIA_ERROR_IO){
+                        //文件不存在或错误，或网络不可访问错误
+                        Toast.makeText(getContext(), "网络文件错误", Toast.LENGTH_LONG).show();
+                    } else if(extra==MediaPlayer.MEDIA_ERROR_TIMED_OUT){
+                        //超时
+                        Toast.makeText(getContext(), "网络超时", Toast.LENGTH_LONG).show();
+                    }
+                }
+                return true;
             }
         });
         mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
