@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
             super(fragmentManager, lifecycle);
         }
 
+
         @Override
         public int getItemCount() {
             return nickNames.size();
