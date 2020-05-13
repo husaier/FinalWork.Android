@@ -27,7 +27,7 @@ public class VideoFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String NICKNAME = "nickName";
     private static final String VIDEOURL = "videoUrl";
-    private static final String TAG = "husserl";
+    private static final String TAG = "VideoFragment";
 
     private String nickName;
     private String videoUrl;
@@ -91,7 +91,7 @@ public class VideoFragment extends Fragment {
                         Toast.makeText(getContext(), "网络超时", Toast.LENGTH_LONG).show();
                     }
                 }
-                return true;
+                return false;
             }
         });
         mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
@@ -100,6 +100,5 @@ public class VideoFragment extends Fragment {
                 mp.start();
             }
         });
-}
-
+    }
 }

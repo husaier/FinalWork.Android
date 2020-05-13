@@ -11,10 +11,9 @@ import androidx.viewpager2.widget.ViewPager2;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.google.gson.annotations.SerializedName;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -25,6 +24,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 // API共有10条视频
 // android官方文档：https://developer.android.google.cn/docs
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
 
     private List<String> ids = new ArrayList<>();//视频ID
     private List<String> feedurls = new ArrayList<>();//视频链接
@@ -32,7 +32,6 @@ public class MainActivity extends AppCompatActivity {
     private List<String> descriptions = new ArrayList<>();//视频描述
     private List<Integer> likecounts = new ArrayList<>();//视频点赞数
     private List<String> avatars = new ArrayList<>();//视频封面链接
-
 
     private ViewPagerFragmentStateAdapter mAdapter;
     private ViewPager2 viewPager2;
@@ -44,25 +43,6 @@ public class MainActivity extends AppCompatActivity {
 
         //从API获取所有视频的信息
         getData();
-    }
-
-    class ViewPagerFragmentStateAdapter extends FragmentStateAdapter {
-
-        ViewPagerFragmentStateAdapter(@NonNull FragmentManager fragmentManager, Lifecycle lifecycle) {
-            super(fragmentManager, lifecycle);
-        }
-
-
-        @Override
-        public int getItemCount() {
-            return nickNames.size();
-        }
-
-        @NonNull
-        @Override
-        public Fragment createFragment(int position) {
-            return VideoFragment.newInstance(nickNames.get(position), feedurls.get(position));
-        }
     }
 
     private void getData() {
@@ -87,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
                             descriptions.add(v.description);
                             likecounts.add(v.likecount);
                             avatars.add(v.avatar);
-//                        Log.d("mainactivity", v.toString());
+//                        Log.d(TAG, v.toString());
                         }
                     }
                     // 获取信息完成
@@ -99,8 +79,26 @@ public class MainActivity extends AppCompatActivity {
             // 获取视频信息失败，打印错误信息
             @Override
             public void onFailure(Call<VideoMessage[]> call, Throwable t) {
-                Log.d("mainactivity", t.getMessage());
+                Log.d(TAG, Objects.requireNonNull(t.getMessage()));
             }
         });
+    }
+
+    class ViewPagerFragmentStateAdapter extends FragmentStateAdapter {
+
+        ViewPagerFragmentStateAdapter(@NonNull FragmentManager fragmentManager, Lifecycle lifecycle) {
+            super(fragmentManager, lifecycle);
+        }
+
+        @Override
+        public int getItemCount() {
+            return nickNames.size();
+        }
+
+        @NonNull
+        @Override
+        public Fragment createFragment(int position) {
+            return VideoFragment.newInstance(nickNames.get(position), feedurls.get(position));
+        }
     }
 }

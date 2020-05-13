@@ -8,6 +8,4 @@ public interface ApiService {
 
     @GET("api/invoke/video/invoke/video")
     Call<VideoMessage[]> getVideoMessages();
-
-
 }
