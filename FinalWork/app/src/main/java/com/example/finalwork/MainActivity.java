@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ViewPagerFragmentStateAdapter mAdapter;
     private ViewPager2 viewPager2;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,15 +60,14 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<VideoMessage[]> call, Response<VideoMessage[]> response) {
                 if (response.body() != null) {
                     VideoMessage[] videos = response.body();// 存入数组
-                    if(videos.length != 0) {                // 判断数组是否为空
-                        for(VideoMessage v:videos) {        //遍历数组，将信息存入各个list中
+                    if (videos.length != 0) {                // 判断数组是否为空
+                        for (VideoMessage v : videos) {        //遍历数组，将信息存入各个list中
                             ids.add(v._id);
                             feedurls.add(v.feedurl);
                             nickNames.add(v.nickname);
                             descriptions.add(v.description);
                             likecounts.add(v.likecount);
                             avatars.add(v.avatar);
-//                        Log.d(TAG, v.toString());
                         }
                     }
                     // 获取信息完成
@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
         @NonNull
         @Override
         public Fragment createFragment(int position) {
-            return VideoFragment.newInstance(nickNames.get(position), feedurls.get(position));
+            return VideoFragment.newInstance(nickNames.get(position), feedurls.get(position), avatars.get(position));
         }
     }
 }
