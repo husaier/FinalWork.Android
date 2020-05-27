@@ -1,7 +1,6 @@
 package com.example.finalwork;
 
 import android.animation.Animator;
-import android.animation.ValueAnimator;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -11,8 +10,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -47,9 +48,14 @@ public class VideoFragment extends Fragment {
     private String avatars;//视频封面
     private String description;//视频描述
     private int likecount;//视频描述
+    private boolean flagLike;//是否喜欢此视频
 
     private TextView tv_likecount;
     private LottieAnimationView lav_like;
+
+    {
+        flagLike = false;
+    }
 
     public VideoFragment() {
         // Required empty public constructor
@@ -121,25 +127,22 @@ public class VideoFragment extends Fragment {
         ImageView iv_heart = view.findViewById(R.id.im_heart);
         iv_heart.setImageResource(R.drawable.heart_gray);
         iv_heart.setOnClickListener(new View.OnClickListener() {
-            private boolean flag;
-            { flag = false; }
-
             @Override
             public void onClick(View v) {
-                if (flag) {
+                if (flagLike) {
                     iv_heart.setImageResource(R.drawable.heart_gray);
                     likecount--;
                     tv_likecount.setText(String.valueOf(likecount));
                     lav_like.cancelAnimation();
-                    flag = false;
+                    flagLike = false;
                 }
                 else {
                     iv_heart.setImageResource(R.drawable.hear_red);
                     likecount++;
                     tv_likecount.setText(String.valueOf(likecount));
                     lav_like.playAnimation();
-                    Log.d(TAG, "播放动画");
-                    flag = true;
+                    //Log.d(TAG, "播放动画");
+                    flagLike = true;
                 }
             }
         });
@@ -155,7 +158,7 @@ public class VideoFragment extends Fragment {
         mVideoView.setVideoURI(uri);
         Log.d(TAG, "uri已设置");
         //播放控制器
-        mVideoView.setMediaController(new MediaController(getContext()));
+        //mVideoView.setMediaController(new MediaController(getContext()));
         mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
@@ -185,8 +188,36 @@ public class VideoFragment extends Fragment {
                 mp.start();
             }
         });
-
-        // 加载图片Uri对象
+        //设置单机双击
+        view.setOnTouchListener(new MyMultiClickListener() {
+            @Override
+            void multiClick(View v, int count) {
+                //连续点击超过2次，被视作一次双击事件
+                if (count == 1) {
+                    if (mVideoView.isPlaying())
+                        mVideoView.pause();
+                    else
+                        mVideoView.start();
+                }
+                else {
+                    if (flagLike) {
+                        iv_heart.setImageResource(R.drawable.heart_gray);
+                        likecount--;
+                        tv_likecount.setText(String.valueOf(likecount));
+                        lav_like.cancelAnimation();
+                        flagLike = false;
+                    }
+                    else {
+                        iv_heart.setImageResource(R.drawable.hear_red);
+                        likecount++;
+                        tv_likecount.setText(String.valueOf(likecount));
+                        lav_like.playAnimation();
+                        //Log.d(TAG, "播放动画");
+                        flagLike = true;
+                    }
+                }
+            }
+        });
         Uri imageUri = Uri.parse(avatars);
         //Glide.with(this).load(imageUri).into(mVideoView.back);
         //显示图片
@@ -197,4 +228,149 @@ public class VideoFragment extends Fragment {
             }
         });
     }
+
+    private class MyClickListener implements View.OnTouchListener {
+        private long THRESHOLD; //阈值，单位：毫秒
+        private boolean flag; //是否喜欢该视频
+        private long lastTime; //上次抬起的时刻
+        private long now;
+        private int count; // 记录连续点击的次数
+        private Runnable mRunnable;
+        private Handler mHandler;
+        {
+            THRESHOLD = 2000;
+            lastTime = 0;
+            count = 0;
+            mRunnable = () -> {
+                //如果Runnable执行，表示在UP事件发生后TRASHOLD ms过去，没有再产生DOWM事件
+                Log.d(TAG, "Delay Runnable触发");
+                Log.d(TAG, "count = " + String.valueOf(count));
+                //UP事件后，THRASHOLD ms内又发生DOWN事件，被视为连续点击
+                //连续点击超过2次，都会被视作一次双击事件
+                if (count == 1) {
+                    //单击
+                    Log.d(TAG, "单击事件");
+                }
+                else {
+                    //双击
+                    Log.d(TAG, "双击事件");
+                }
+                count = 0;
+            };
+            mHandler = new Handler();
+        }
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            //Log.d(TAG, "OnTouch触发");
+            now = System.currentTimeMillis();
+            int eventName = event.getAction();
+            if (eventName == MotionEvent.ACTION_DOWN) {
+                Log.d(TAG, "OnTouch ACTION_DOWN触发");
+                //如果有的话，取消上一个Runnable任务
+                if (mRunnable != null)
+                    mHandler.removeCallbacks(mRunnable);
+                count++;
+                return true;
+            }
+            else if (eventName == MotionEvent.ACTION_UP) {
+                Log.d(TAG, "OnTouch ACTION_UP触发");
+                lastTime = now;
+                //每次抬起都部署一个runnable
+                mHandler.postDelayed(mRunnable, THRESHOLD);
+            }
+            else { //其它事件
+                Log.d(TAG, "事件" + String.valueOf(eventName));
+            }
+            //这是另一种处理，它有弊端
+            //它会把双击事件的前一次点击，也视为一次单击事件
+
+//                if (eventName == MotionEvent.ACTION_DOWN) {
+//                    Log.d(TAG, "OnTouch DOWN触发" + String.valueOf(now - lastTime));
+//                    if (now - lastTime < THRESHOLD) {
+//                        //双击
+//                        Log.d(TAG, "双击触发");
+//                        if (flag) {
+//                            iv_heart.setImageResource(R.drawable.heart_gray);
+//                            likecount--;
+//                            tv_likecount.setText(String.valueOf(likecount));
+//                            lav_like.cancelAnimation();
+//                            flag = false;
+//                        }
+//                        else {
+//                            iv_heart.setImageResource(R.drawable.hear_red);
+//                            likecount++;
+//                            tv_likecount.setText(String.valueOf(likecount));
+//                            lav_like.playAnimation();
+//                            //Log.d(TAG, "播放动画");
+//                            flag = true;
+//                        }
+//                    }
+//                    else {
+//                        //单击
+//                        Log.d(TAG, "单击触发" + String.valueOf(now - lastTime));
+//                        if (mVideoView.isPlaying())
+//                            mVideoView.pause();
+//                        else
+//                            mVideoView.start();
+//                    }
+//                    return true;
+//                }
+//                else if(eventName == MotionEvent.ACTION_UP){
+//                    Log.d(TAG, "OnTouch UP触发");
+//                    lastTime = now;
+//                }
+//                else {
+//                    Log.d(TAG, "事件" + String.valueOf(eventName));
+//                }
+            return false;
+        }
+    }
 }
+
+abstract class MyMultiClickListener implements View.OnTouchListener {
+    private static String TAG = "MyMultiClickListener";
+
+    private View view;
+    private long THRESHOLD; //阈值，单位：毫秒
+    private int count; // 记录连续点击的次数
+    private Runnable mRunnable;
+    private Handler mHandler;
+    {
+        THRESHOLD = 300;
+        count = 0;
+        mRunnable = () -> {
+            //如果Runnable执行，表示在UP事件发生后TRASHOLD ms过去，没有再产生DOWM事件
+            Log.d(TAG, "Delay Runnable触发");
+            Log.d(TAG, "count = " + String.valueOf(count));
+            //UP事件后，THRASHOLD ms内又发生DOWN事件，被视为连续点击
+            multiClick(view, count);
+            count = 0;
+        };
+        mHandler = new Handler();
+    }
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        int eventName = event.getAction();
+        if (eventName == MotionEvent.ACTION_DOWN) {
+            Log.d(TAG, "OnTouch ACTION_DOWN触发");
+            //如果有的话，取消上一个Runnable任务
+            if (mRunnable != null)
+                mHandler.removeCallbacks(mRunnable);
+            count++;
+            return true;
+        }
+        else if (eventName == MotionEvent.ACTION_UP) {
+            Log.d(TAG, "OnTouch ACTION_UP触发");
+            //每次抬起都部署一个runnable
+            view = v;
+            mHandler.postDelayed(mRunnable, THRESHOLD);
+        }
+        else { //其它事件
+            count = 0;
+            Log.d(TAG, "其它事件" + String.valueOf(eventName));
+        }
+        return false;
+    }
+
+    abstract void multiClick(View v, int count);
+};
