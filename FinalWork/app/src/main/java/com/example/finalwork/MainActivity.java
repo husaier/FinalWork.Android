@@ -98,7 +98,8 @@ public class MainActivity extends AppCompatActivity {
         @NonNull
         @Override
         public Fragment createFragment(int position) {
-            return VideoFragment.newInstance(nickNames.get(position), feedurls.get(position), avatars.get(position));
+            return VideoFragment.newInstance(nickNames.get(position), feedurls.get(position), avatars.get(position),
+                    descriptions.get(position), likecounts.get(position));
         }
     }
 }

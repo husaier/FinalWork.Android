@@ -8,6 +8,25 @@
     android:layout_height="match_parent"
     android:background="@color/colorBlack">
 
+
+
+<!--    <FrameLayout-->
+<!--        android:layout_width="200dp"-->
+<!--        android:layout_height="200dp"-->
+<!--        app:layout_constraintLeft_toLeftOf="parent"-->
+<!--        app:layout_constraintRight_toRightOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent">-->
+
+<!--        <com.airbnb.lottie.LottieAnimationView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:id="@+id/lav_like"-->
+<!--            android:layout_gravity="center"-->
+<!--            app:lottie_rawRes="@raw/heart_beat"/>-->
+
+<!--    </FrameLayout>-->
+
     <VideoView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -15,17 +34,61 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:background="@color/colorBlack"/>
+
+    <com.airbnb.lottie.LottieAnimationView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lav_like"
+        android:layout_gravity="center"
+        app:lottie_rawRes="@raw/heart_beat"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:id="@+id/im_heart"
+        android:layout_marginEnd="10dp"
+        android:contentDescription="@null"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/tv_nickname"
-        android:layout_marginBottom="10dp"
+        android:id="@+id/tv_likecount"
+        app:layout_constraintTop_toBottomOf="@id/im_heart"
+        app:layout_constraintRight_toRightOf="@id/im_heart"
+        app:layout_constraintLeft_toLeftOf="@id/im_heart"
+        android:textColor="@color/colorWhite"
+        android:gravity="center"
+        android:textSize="13sp"/>
+
+    <TextView
+        android:layout_width="190dp"
+        android:layout_height="wrap_content"
+        android:singleLine="false"
+        android:id="@+id/tv_description"
+        android:layout_marginStart="10dp"
+        android:layout_marginBottom="50dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
         android:textColor="@color/colorWhite"
-        android:gravity="center" />
+        android:gravity="start"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tv_nickname"
+        android:layout_margin="10dp"
+        app:layout_constraintBottom_toTopOf="@id/tv_description"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:textColor="@color/colorWhite"
+        android:gravity="start" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
