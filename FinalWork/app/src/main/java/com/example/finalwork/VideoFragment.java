@@ -96,12 +96,14 @@ public class VideoFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        //设置loading动画
+        LottieAnimationView lav_loading = view.findViewById(R.id.lav_loading);
         //设置用户名
         TextView tv_nickName = view.findViewById(R.id.tv_nickname);
         tv_nickName.setText(nickName);
         //设置like动画
         lav_like = view.findViewById(R.id.lav_like);
-        lav_like.useHardwareAcceleration();
+        lav_like.setAlpha(0f);
         lav_like.addAnimatorListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
@@ -158,7 +160,8 @@ public class VideoFragment extends Fragment {
         mVideoView.setVideoURI(uri);
         Log.d(TAG, "uri已设置");
         //播放控制器
-        //mVideoView.setMediaController(new MediaController(getContext()));
+        MediaController mediaController = new MediaController(getContext());
+        mVideoView.setMediaController(mediaController);
         mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
@@ -186,6 +189,8 @@ public class VideoFragment extends Fragment {
             public void onPrepared(MediaPlayer mp) {
                 mVideoView.setBackground(null);
                 mp.start();
+                lav_loading.setAlpha(0f);
+                lav_loading.pauseAnimation();
             }
         });
         //设置单机双击
@@ -221,12 +226,12 @@ public class VideoFragment extends Fragment {
         Uri imageUri = Uri.parse(avatars);
         //Glide.with(this).load(imageUri).into(mVideoView.back);
         //显示图片
-        Glide.with(this).load(imageUri).into(new ViewTarget(mVideoView) {
-            @Override
-            public void onResourceReady(@NonNull Object resource, @Nullable Transition transition) {
-                this.view.setBackground((Drawable) resource);
-            }
-        });
+//        Glide.with(this).load(imageUri).into(new ViewTarget(mVideoView) {
+//            @Override
+//            public void onResourceReady(@NonNull Object resource, @Nullable Transition transition) {
+//                this.view.setBackground((Drawable) resource);
+//            }
+//        });
     }
 
     private class MyClickListener implements View.OnTouchListener {
