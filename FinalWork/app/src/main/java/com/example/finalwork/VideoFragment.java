@@ -1,6 +1,7 @@
 package com.example.finalwork;
 
 import android.animation.Animator;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -144,6 +145,11 @@ public class VideoFragment extends Fragment {
                 this.view.setBackground((Drawable) resource);
             }
         });
+        ObjectAnimator animator = ObjectAnimator.ofFloat(circle_iv , "rotation" , 0 , 360);
+        animator.setRepeatCount(ObjectAnimator.INFINITE);
+        animator.setRepeatMode(ObjectAnimator.RESTART);
+        animator.setDuration(18000);
+        animator.start();
 
         //设置灰心图片
         ImageView iv_heart = view.findViewById(R.id.im_heart);
