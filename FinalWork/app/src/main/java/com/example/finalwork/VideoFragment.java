@@ -3,6 +3,7 @@ package com.example.finalwork;
 import android.animation.Animator;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -25,6 +26,11 @@ import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.airbnb.lottie.LottieAnimationView;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.ViewTarget;
+import com.bumptech.glide.request.transition.Transition;
 
 
 /**
@@ -125,6 +131,20 @@ public class VideoFragment extends Fragment {
             @Override
             public void onAnimationRepeat(Animator animation) { }
         });
+
+        //设置封面图
+        CircleImageView circle_iv = (CircleImageView) view.findViewById(R.id.cover);
+        Uri imageUri = Uri.parse(avatars);
+        Glide.with(this)
+                .load(imageUri)
+                .apply(RequestOptions.bitmapTransform(new CircleCrop()))
+                .into(new ViewTarget(circle_iv) {
+            @Override
+            public void onResourceReady(@NonNull Object resource, @Nullable Transition transition) {
+                this.view.setBackground((Drawable) resource);
+            }
+        });
+
         //设置灰心图片
         ImageView iv_heart = view.findViewById(R.id.im_heart);
         if (flagLike)
@@ -246,15 +266,6 @@ public class VideoFragment extends Fragment {
 
             }
         });
-        Uri imageUri = Uri.parse(avatars);
-        //Glide.with(this).load(imageUri).into(mVideoView.back);
-        //显示图片
-//        Glide.with(this).load(imageUri).into(new ViewTarget(mVideoView) {
-//            @Override
-//            public void onResourceReady(@NonNull Object resource, @Nullable Transition transition) {
-//                this.view.setBackground((Drawable) resource);
-//            }
-//        });
     }
 
     private void share() {

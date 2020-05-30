@@ -30,6 +30,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
 
+
     <ImageView
         android:layout_width="50dp"
         android:layout_height="50dp"
@@ -60,6 +61,18 @@
         android:src="@drawable/share_btn"
         app:layout_constraintTop_toBottomOf="@id/tv_likecount"
         app:layout_constraintRight_toRightOf="parent"/>
+
+    <com.example.finalwork.CircleImageView
+        android:id="@+id/cover"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/im_share"
+        tools:ignore="MissingConstraints" />
 
     <TextView
         android:layout_width="190dp"
