@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -22,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.MediaController;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -32,6 +34,8 @@ import com.bumptech.glide.load.resource.bitmap.CircleCrop;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.ViewTarget;
 import com.bumptech.glide.request.transition.Transition;
+
+import java.util.Objects;
 
 
 /**
@@ -48,6 +52,7 @@ public class VideoFragment extends Fragment {
     private static final String LIKECOUNT = "likecount";
 
     private static final String TAG = "VideoFragment";
+    private static final int UPDATE_VIDEO_PROGRESS = 0;
 
     private String nickName;//用户名
     private String videoUrl;//视频地址
@@ -58,7 +63,13 @@ public class VideoFragment extends Fragment {
 
     private TextView tv_likecount;
     private LottieAnimationView lav_like;
-    private GestureDetector mDetector;
+    private VideoView mVideoView;
+    private LottieAnimationView lav_loading;
+    private SeekBar sk_video;
+    private TextView tv_curTime;
+    private TextView tv_totalTime;
+    private static Handler mHandler;
+    private updateThread videoUpdater;
 
     {
         flagLike = false;
@@ -104,7 +115,7 @@ public class VideoFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         //设置loading动画
-        LottieAnimationView lav_loading = view.findViewById(R.id.lav_loading);
+        lav_loading = view.findViewById(R.id.lav_loading);
         //设置用户名
         TextView tv_nickName = view.findViewById(R.id.tv_nickname);
         tv_nickName.setText(nickName);
@@ -151,7 +162,6 @@ public class VideoFragment extends Fragment {
         animator.setRepeatMode(ObjectAnimator.RESTART);
         animator.setDuration(18000);
         animator.start();
-
         //设置灰心图片
         ImageView iv_heart = view.findViewById(R.id.im_heart);
         if (flagLike)
@@ -193,49 +203,12 @@ public class VideoFragment extends Fragment {
         TextView tv_description = view.findViewById(R.id.tv_description);
         tv_description.setText(description);
         //设置视频播放控制
-        VideoView mVideoView = view.findViewById(R.id.vv_video);
-        Uri uri = Uri.parse(videoUrl);
-        mVideoView.setVideoURI(uri);
-        Log.d(TAG, "uri已设置");
-        //播放控制器
-        MediaController mediaController = new MediaController(getContext());
-        mVideoView.setMediaController(mediaController);
-        mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                Log.d(TAG, "VideoView onCompletion");
-                mp.start();
-                mp.setLooping(true);
-            }
-        });
-        mVideoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-            @Override
-            public boolean onError(MediaPlayer mp, int what, int extra) {
-                if(what==MediaPlayer.MEDIA_ERROR_UNKNOWN){
-                    if(extra==MediaPlayer.MEDIA_ERROR_IO){
-                        //文件不存在或错误，或网络不可访问错误
-                        Toast.makeText(getContext(), "网络文件错误", Toast.LENGTH_LONG).show();
-                    } else if(extra==MediaPlayer.MEDIA_ERROR_TIMED_OUT){
-                        //超时
-                        Toast.makeText(getContext(), "网络超时", Toast.LENGTH_LONG).show();
-                    }
-                }
-                return false;
-            }
-        });
-        mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                mVideoView.setBackground(null);
-                if (!mp.isPlaying())
-                    mp.start();
-                if (lav_loading.isAnimating()) {
-                    lav_loading.setAlpha(0f);
-                    lav_loading.pauseAnimation();
-                }
-            }
-        });
-        //设置单机双击、长按3秒重头播放
+        mVideoView = view.findViewById(R.id.vv_video);
+        sk_video = view.findViewById(R.id.sk_video);
+        tv_curTime = view.findViewById((R.id.tv_cur_time));
+        tv_totalTime = view.findViewById(R.id.tv_total_time);
+        setVideo();
+        //设置单机双击
         view.setOnTouchListener(new MyTouchListener(getContext()) {
             @Override
             void multiClick(View v, int count) {
@@ -285,6 +258,143 @@ public class VideoFragment extends Fragment {
         // 创建分享的Dialog
         share_intent = Intent.createChooser(share_intent, "分享到");
         startActivity(share_intent);
+    }
+
+    private void setVideo() {
+
+        Uri uri = Uri.parse(videoUrl);
+        mVideoView.setVideoURI(uri);
+        Log.d(TAG, "uri已设置");
+        //播放控制
+        sk_video.setProgress(0);
+        sk_video.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            private boolean shouldPlaying;
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(fromUser) {
+                    float proportion = (float)progress / 100;
+                    float length = (float)mVideoView.getDuration();
+                    int cur = (int)(length * proportion);
+                    setTime(cur);
+                    mVideoView.seekTo(cur);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                if(mVideoView.isPlaying()) {
+                    shouldPlaying = true;
+                    mVideoView.pause();
+                }
+                else
+                    shouldPlaying = false;
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                if(shouldPlaying)
+                    mVideoView.start();
+            }
+        });
+        mHandler = new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                switch (msg.what) {
+                    case UPDATE_VIDEO_PROGRESS:
+                        int mCur = mVideoView.getCurrentPosition();
+                        setTime(mCur);
+                }
+            }
+        };
+        videoUpdater = new updateThread();
+        videoUpdater.start();
+//        MediaController mediaController = new MediaController(getContext());
+//        mVideoView.setMediaController(mediaController);
+        mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                Log.d(TAG, "VideoView onCompletion");
+                mp.start();
+                mp.setLooping(true);
+            }
+        });
+        mVideoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            @Override
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+                if(what==MediaPlayer.MEDIA_ERROR_UNKNOWN){
+                    if(extra==MediaPlayer.MEDIA_ERROR_IO){
+                        //文件不存在或错误，或网络不可访问错误
+                        Toast.makeText(getContext(), "网络文件错误", Toast.LENGTH_LONG).show();
+                    } else if(extra==MediaPlayer.MEDIA_ERROR_TIMED_OUT){
+                        //超时
+                        Toast.makeText(getContext(), "网络超时", Toast.LENGTH_LONG).show();
+                    }
+                }
+                return false;
+            }
+        });
+        mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                mVideoView.setBackground(null);
+                if (!mp.isPlaying())
+                    mp.start();
+                else
+                    setTime(0);
+                if (lav_loading.isAnimating()) {
+                    lav_loading.setAlpha(0f);
+                    lav_loading.pauseAnimation();
+                }
+            }
+        });
+    }
+
+    private void setTime(int cur) {
+        int length = mVideoView.getDuration();
+        if(length < 0)
+            return;
+        float tmp = (float)cur / (float)length * (float) 100;
+        sk_video.setProgress((int)tmp);
+        Log.d(TAG, "video duration:" + length);
+        Log.d(TAG, "current position:" + cur + " seek bar progress:" +  tmp);
+
+        if(cur % 1000 >= 500)
+            cur = cur / 1000 + 1;
+        else
+            cur = cur / 1000;
+
+        if(length % 1000 >= 500)
+            length = length / 1000 + 1;
+        else
+            length = length / 1000;
+        int length_min = length / 60;
+        int length_sec = length % 60;
+        int cur_min = cur / 60;
+        int cur_sec = cur % 60;
+        String time = String.valueOf(cur_min) + ':' + cur_sec;
+        tv_curTime.setText(time);
+        time = String.valueOf(length_min) + ':' + length_sec;
+        tv_totalTime.setText(time);
+    }
+
+    private class updateThread extends Thread {
+        @Override
+        public void run() {
+            super.run();
+            while(!isInterrupted()) {
+                try{
+                    Thread.sleep(500);
+                    if(mVideoView.isPlaying()) {
+                        mHandler.sendEmptyMessage(UPDATE_VIDEO_PROGRESS);
+                    }
+                }
+                catch (InterruptedException e) {
+                    Log.d(TAG, "updateThread is destroyed!");
+                }
+            }
+        }
     }
 }
 

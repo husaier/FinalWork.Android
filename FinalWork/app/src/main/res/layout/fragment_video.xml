@@ -94,7 +94,7 @@
         app:layout_constraintBottom_toTopOf="@id/tv_description"
         app:layout_constraintLeft_toLeftOf="parent"
         android:textColor="@color/colorWhite"
-        android:gravity="start" />
+        android:gravity="start"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -112,6 +112,39 @@
             app:lottie_rawRes="@raw/loading"
             app:lottie_loop="true"
             app:lottie_autoPlay="true" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_marginBottom="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:id="@+id/tv_cur_time"
+            android:textColor="@color/colorWhite"
+            android:gravity="center"/>
+
+        <SeekBar
+            android:layout_weight="7"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:id="@+id/sk_video" />
+
+        <TextView
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:id="@+id/tv_total_time"
+            android:textColor="@color/colorWhite"
+            android:gravity="center"/>
 
     </LinearLayout>
 
