@@ -145,6 +145,7 @@ public class VideoFragment extends Fragment {
                 this.view.setBackground((Drawable) resource);
             }
         });
+        //设置头像旋转
         ObjectAnimator animator = ObjectAnimator.ofFloat(circle_iv , "rotation" , 0 , 360);
         animator.setRepeatCount(ObjectAnimator.INFINITE);
         animator.setRepeatMode(ObjectAnimator.RESTART);
