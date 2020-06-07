@@ -16,11 +16,6 @@
         android:supportsRtl="true"
         android:theme="@style/FullScreen"
         android:networkSecurityConfig="@xml/network_security_config">
-<!--   我日你妈巨坑，android9.0以上不支持http协议，默认都必须是https-->
-<!--   详情见博客:https://blog.csdn.net/weixin_45365889/article/details/
-99581627?utm_medium=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromBaidu-1.
-nonecase&depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromBaidu-1.nonecase-->
-<!--   最低适配版本要高于24，否则没有NetworkSecurityConfig这个属性-->
 
         <activity android:name=".MainActivity"
             android:screenOrientation = "portrait"
